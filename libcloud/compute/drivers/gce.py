@@ -371,6 +371,7 @@ class GCEDiskType(UuidMixin):
         return '<GCEDiskType id="%s" name="%s" zone="%s">' % (
             self.id, self.name, self.zone)
 
+
 class GCEAcceleratorType(UuidMixin):
     """A GCE AcceleratorType resource."""
 
@@ -3962,7 +3963,7 @@ class GCENodeDriver(NodeDriver):
                                  "'ex_accelerator_count' when using "
                                  "'ex_accelerator_type'.")
             ex_accelerator_type = self.ex_get_accelerator_type(
-                    ex_accelerator_type, zone=location)
+                ex_accelerator_type, zone=location)
 
         # Use disks[].initializeParams to auto-create the boot disk
         if not ex_disks_gce_struct and not ex_boot_disk:
@@ -4344,8 +4345,8 @@ class GCENodeDriver(NodeDriver):
         # build accelerators
         if accelerator_type is not None:
             instance_properties['guestAccelerators'] = \
-                    self._format_guest_accelerators(accelerator_type,
-                                                    accelerator_count)
+                self._format_guest_accelerators(accelerator_type,
+                                                accelerator_count)
 
         # include general properties
         if description:
@@ -6838,7 +6839,7 @@ class GCENodeDriver(NodeDriver):
         response = self.connection.request(request, method='GET').object
         return self._to_disktype(response)
 
-    def ex_get_accelerator_type(self, name, zone):
+    def ex_get_accelerator_type(self, name, zone=None):
         """
         Return an AcceleratorType object based on a name and zone.
 
@@ -6851,6 +6852,7 @@ class GCENodeDriver(NodeDriver):
         :return:  An AcceleratorType object for the name
         :rtype:   :class:`GCEAcceleratorType`
         """
+        zone = self._set_zone(zone)
         request = '/zones/%s/acceleratorTypes/%s' % (zone.name, name)
         response = self.connection.request(request, method='GET').object
         return self._to_accelerator_type(response)
@@ -8237,9 +8239,9 @@ class GCENodeDriver(NodeDriver):
         extra['creationTimestamp'] = accelerator_type.get('creationTimestamp')
         extra['description'] = accelerator_type.get('description')
         extra['maximumCardsPerInstance'] = accelerator_type.get(
-                'maximumCardsPerInstance')
+            'maximumCardsPerInstance')
         extra['default_disk_size_gb'] = accelerator_type.get(
-                'defaultDiskSizeGb')
+            'defaultDiskSizeGb')
         type_id = "%s:%s" % (zone.name, accelerator_type['name'])
 
         return GCEAcceleratorType(id=type_id, name=accelerator_type['name'],
@@ -9016,8 +9018,8 @@ class GCENodeDriver(NodeDriver):
         :rtype:  ``list``
         """
         accelerator_type = self._get_selflink_or_name(
-                obj=accelerator_type, get_selflinks=True,
-                objname='accelerator_type')
+            obj=accelerator_type, get_selflinks=True,
+            objname='accelerator_type')
         return [{'acceleratorType': accelerator_type,
                  'acceleratorCount': accelerator_count}]
 
